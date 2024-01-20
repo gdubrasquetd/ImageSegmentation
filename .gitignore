@@ -1,0 +1,18 @@
+# Compiled Python files
+__pycache__/
+
+# Bytecode files
+*.pyc
+*.pyo
+*.pyd
+
+# Coverage output file
+.coverage
+
+# Virtual environment
+venv/
+
+# Visual Studio Code configuration file
+.vscode/
+
+*.zip
