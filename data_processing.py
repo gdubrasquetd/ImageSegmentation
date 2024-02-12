@@ -4,7 +4,6 @@ import cv2
 from glob import glob
 from tqdm import tqdm
 import random
-import imageio
 import parameters as p
 
 def create_dir(path):
@@ -14,12 +13,18 @@ def create_dir(path):
 
 def augment_data(images, masks, save_path, augmented = True):
         
-    for idx, (x, y) in tqdm(enumerate(zip(images, masks)), total=len(images)):
-        name = x.split("/")[-1]
+    for _, (x_path, y_path) in tqdm(enumerate(zip(images, masks)), total=len(images)):
+        name = x_path.split("/")[-1]
         name = name.split(".")[0]
 
-        x = cv2.imread(x, cv2.IMREAD_COLOR)
-        y = imageio.mimread(y)[0]  # Load first frame from .gif
+        x = cv2.imread(x_path, cv2.IMREAD_COLOR)
+        y = cv2.imread(y_path, cv2.IMREAD_COLOR)
+        
+        if x_path is None:
+            print("Can't open : ", x_path)
+
+        if y_path is None:
+            print("Can't open : ", y_path)
 
         X = [x]
         Y = [y]
@@ -48,7 +53,7 @@ def augment_data(images, masks, save_path, augmented = True):
                 angle = random.randrange(p.Rotation_Angle[0], p.Rotation_Angle[1])
                 rotation_matrix = cv2.getRotationMatrix2D((height/2, width/2), random.choice([-angle, angle]), 1)
                 x_augment = cv2.warpAffine(x, rotation_matrix, (width, height))
-                y_augment = cv2.warpAffine(y, rotation_matrix, (width, height))
+                y_augment = cv2.warpAffine(y, rotation_matrix, (width, height), flags=cv2.INTER_NEAREST)
                 X.append(x_augment)
                 Y.append(y_augment)
                 
@@ -90,7 +95,7 @@ def augment_data(images, masks, save_path, augmented = True):
         index = 0
         for img, msk in zip(X, Y):
             img = cv2.resize(img, p.size)
-            msk = cv2.resize(msk, p.size)
+            msk = cv2.resize(msk, p.size, interpolation=cv2.INTER_NEAREST)
             
             tmp_image_name = f"{name}_{index}.png"
             tmp_mask_name = f"{name}_{index}.png"

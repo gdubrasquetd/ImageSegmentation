@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import parameters as p
+import torch.nn.functional as F
 
 
 class conv_block(nn.Module):
@@ -84,7 +85,7 @@ class decoder_block(nn.Module):
     
         
 class UNET(nn.Module):
-    def __init__(self):
+    def __init__(self, num_classes=p.nb_class):
         super().__init__()
         
         #Encoder
@@ -103,7 +104,7 @@ class UNET(nn.Module):
         self.d4 = decoder_block(128, 64)
         
         #Classifier
-        self.outputs = nn.Conv2d(64, 3, kernel_size=1, padding=0)
+        self.outputs = nn.Conv2d(64, num_classes, kernel_size=1, padding=0)
 
         
     def forward(self, inputs):
@@ -122,5 +123,6 @@ class UNET(nn.Module):
         d4 = self.d4(d3, s1)
         
         outputs = self.outputs(d4)
-        
+        outputs = F.softmax(outputs, dim=1)
+
         return outputs

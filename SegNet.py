@@ -24,7 +24,7 @@ class SegNet(nn.Module):
         self.dec_bn3 = nn.BatchNorm2d(64)
         self.dec_conv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
         self.dec_bn2 = nn.BatchNorm2d(64)
-        self.dec_conv1 = nn.Conv2d(64, 3, kernel_size=3, padding=1)
+        self.dec_conv1 = nn.Conv2d(64, num_classes, kernel_size=3, padding=1)
 
     def forward(self, x):
         # Encoder
@@ -38,5 +38,6 @@ class SegNet(nn.Module):
         x_dec = F.relu(self.dec_bn3(self.dec_conv3(x_dec)))
         x_dec = F.relu(self.dec_bn2(self.dec_conv2(x_dec)))
         x_dec = self.dec_conv1(x_dec)
+        outputs = F.softmax(x_dec, dim=1)
 
-        return x_dec
+        return outputs
