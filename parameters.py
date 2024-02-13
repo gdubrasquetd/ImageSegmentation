@@ -18,14 +18,14 @@ seed = 40
 
 # Data augmentation
 
-Global_Flip = False
+Global_Flip = True
 
-Horizontal_Flip = False
+Horizontal_Flip = True
 
-Vertical_Flip = False
+Vertical_Flip = True
 
-Rotation = False
-Rotation_Angle = [5, 30]   	# Random value between 10 and 45 or -10 and -45
+Rotation = True
+Rotation_Angle = [20, 50]   	# Random value between 10 and 45 or -10 and -45
 
 Brightness = False
 Bright_Range = [10, 40]     	# Random value between 30 and 80 or -30 and -80
@@ -53,26 +53,40 @@ dropout_prob = 0
 
 # Class
 
-#region Face
-nb_class = 6
+#region Eyes
+nb_class = 2
 
 class_colors = {
-    0 : (255, 0, 0),      #Background
-    1 : (127, 0, 0),      #Hair
-    2 : (255, 255, 0),    #Skin
-    3 : (0, 0, 255),      #Eyes
-    4 : (0, 255, 255),    #Nose  
-    5 : (0, 255, 0)       #Mouth
+    0 : (0, 0, 0),        #Background
+    1 : (255, 255, 255)   #Vessels
 }
 
 class_weights = {
-    0 : 1,
-    1 : 1,
-    2 : 1,
-    3 : 1,
-    4 : 1,
-    5 : 1
+    0 : 0,
+    1 : 1
 }
+#endregion
+
+#region Face
+# nb_class = 6
+
+# class_colors = {
+#     0 : (255, 0, 0),      #Background
+#     1 : (127, 0, 0),      #Hair
+#     2 : (255, 255, 0),    #Skin
+#     3 : (0, 0, 255),      #Eyes
+#     4 : (0, 255, 255),    #Nose  
+#     5 : (0, 255, 0)       #Mouth
+# }
+
+# class_weights = {
+#     0 : 1,
+#     1 : 1,
+#     2 : 1,
+#     3 : 1,
+#     4 : 1,
+#     5 : 1
+# }
 #endregion
 
 #region Satelitte
@@ -254,5 +268,5 @@ results_path = "results/"
 
 checkpoint_path = "checkpoint/"
 
-load_pretrained_model = True
+load_pretrained_model = False
 pretrained_path = "checkpoint/checkpoint.pth"

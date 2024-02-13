@@ -127,11 +127,12 @@ if __name__ == "__main__":
         val_losses.append(validation_loss)
         
         bash_width = os.get_terminal_size().columns
-        estimated_time = (int)(((epoch_mins * 60 + epoch_secs) * (p.num_epochs - epoch)) / 60)
-        times.append(estimated_time)
+        
+        times.append(epoch_mins * 60 + epoch_secs)
+        estimated_time = (int)((np.mean(times) * (p.num_epochs - epoch)) / 60)
         
         text1 =f"Epoch : {epoch+1}"
-        text2 = f"Remaining: {int(np.mean(times))} min"
+        text2 = f"Remaining: {estimated_time} min"
         text3 = f"Epoch Time : {epoch_mins} min {epoch_secs} sec"
         
         print("=" * bash_width)

@@ -87,11 +87,11 @@ if __name__ == "__main__":
         pred_y = pred_y.permute(0, 2, 3, 1).detach().cpu().numpy()
         pred_y = cv2.cvtColor((pred_y[0]), cv2.COLOR_BGR2RGB)
 
-        line = np.ones((p.size[1], 5, 3)) * 50
+        line = np.ones((p.size[1], 5, 3)) * 100
         
-        cv2.putText(image, 'Image :', (10, 20), cv2.FONT_HERSHEY_DUPLEX, 0.7, (50, 50, 50), 1)
-        cv2.putText(mask, 'Ground Truth :', (10, 20), cv2.FONT_HERSHEY_DUPLEX, 0.7, (50, 50, 50), 1)
-        cv2.putText(pred_y , 'Prediction :', (10, 20), cv2.FONT_HERSHEY_DUPLEX, 0.7, (50, 50, 50), 1)
+        cv2.putText(image, 'Image :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (100, 100, 100), 2)
+        cv2.putText(mask, 'Ground Truth :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (100, 100, 100), 2)
+        cv2.putText(pred_y , 'Prediction :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (100, 100, 100), 2)
 
         cat_images = np.concatenate([image, line, mask, line, pred_y], axis=1)
         cv2.imwrite(p.results_path + name + ".png", cat_images)
