@@ -18,13 +18,13 @@ seed = 40
 
 # Data augmentation
 
-Global_Flip = True
+Global_Flip = False
 
-Horizontal_Flip = True
+Horizontal_Flip = False
 
-Vertical_Flip = True
+Vertical_Flip = False
 
-Rotation = True
+Rotation = False
 Rotation_Angle = [20, 50]   	# Random value between 10 and 45 or -10 and -45
 
 Brightness = False
@@ -41,7 +41,7 @@ Zoom_Range = [0.5, 0.95]     	# Random value between 0 and 1
 
 model = "UNET"
 
-loss = ""
+loss = "diceloss"
 
 size = (512, 512)
 
@@ -54,17 +54,17 @@ dropout_prob = 0
 # Class
 
 #region Eyes
-nb_class = 2
+# nb_class = 2
 
-class_colors = {
-    0 : (0, 0, 0),        #Background
-    1 : (255, 255, 255)   #Vessels
-}
+# class_colors = {
+#     0 : (0, 0, 0),        #Background
+#     1 : (255, 255, 255)   #Vessels
+# }
 
-class_weights = {
-    0 : 0,
-    1 : 1
-}
+# class_weights = {
+#     0 : 0,
+#     1 : 1
+# }
 #endregion
 
 #region Face
@@ -90,27 +90,25 @@ class_weights = {
 #endregion
 
 #region Satelitte
-# nb_class = 6
+nb_class = 6
 
+class_colors = {
+    0 : (155, 155, 155),  #Unlabeled
+    1 : (226, 169, 41),   #Water   
+    2 : (254, 221, 58),   #Vegetation
+    3 : (132, 41, 246),   #Land
+    4 : (110, 193, 228),  #Road
+    5 : (60, 16, 152)     #Building
+}
 
-# class_colors = {
-#     0 : (155, 155, 155),  #Unlabeled
-#     1 : (226, 169, 41),   #Water   
-#     2 : (254, 221, 58),   #Vegetation
-#     3 : (132, 41, 246),   #Land
-#     4 : (110, 193, 228),  #Road
-#     5 : (60, 16, 152)     #Building
-# }
-
-# class_weights = {
-#     0 : 1,
-#     1 : 1,
-#     2 : 1,
-#     3 : 1,
-#     4 : 1,
-#     5 : 1
-# }
-
+class_weights = {
+    0 : 1,
+    1 : 1,
+    2 : 1,
+    3 : 1,
+    4 : 1,
+    5 : 1
+}
 #endregion
 
 #region Drone
@@ -255,6 +253,17 @@ class_weights = {
 #     7 : 1
 # }
 #endregion
+
+# Metrics
+
+precision = True
+recall = True
+f1_score = True
+
+true_positive = False
+true_negative = False
+false_positive = False
+false_negative = False
 
 # Graph
 

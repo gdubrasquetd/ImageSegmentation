@@ -12,9 +12,9 @@ import torch.nn as nn
 from UNET import UNET
 from SegNet import SegNet
 
-from loss import DiceLoss, MultiClassDiceLoss, JaccardLoss, WeightedDiceLoss
-from utils import seeding, create_dir, epoch_time, rgb_to_class, class_to_rgb
-from data import DriveDataset
+from metrics import DiceLoss, MultiClassDiceLoss, JaccardLoss, WeightedDiceLoss
+from utils import seeding, create_dir, epoch_time, rgb_to_class, class_to_rgb, loss_selector, model_selector
+from drivedataset import DriveDataset
 import parameters as p
 
 
@@ -100,14 +100,14 @@ if __name__ == "__main__":
     )
     
     device = torch.device('cuda')
-    model = UNET()
+    model = model_selector(p.model)
     if p.load_pretrained_model and os.path.exists(p.pretrained_path):
         model.load_state_dict(torch.load(p.pretrained_path, map_location=device))
     model = model.to(device=device)
     
     optimizer = torch.optim.Adam(model.parameters(), lr=p.lr)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.2, verbose=True)
-    loss_function = WeightedDiceLoss()
+    loss_function = loss_selector(p.loss)
     
     best_valid_loss = float("inf")
     

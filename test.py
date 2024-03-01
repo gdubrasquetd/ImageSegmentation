@@ -4,38 +4,57 @@ import numpy as np
 from glob import glob
 import cv2
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 import torch
-from sklearn.metrics import accuracy_score, f1_score, jaccard_score, precision_score, recall_score
 import torch.nn.functional as F
 
 from UNET import UNET
 from SegNet import SegNet
 
-from utils import create_dir, seeding, rgb_to_class, class_to_rgb
+from utils import create_dir, seeding, rgb_to_class, class_to_rgb, metrics_printer, plot_confusion_matrix
+from metrics import precision_recall_f1_score, accuracy_score, weighted_dice_score, jaccard_score, confusion_matrix
 import parameters as p
 
+confusion_matrix_list = []
+global_metrics = []
+precision_metrics = []
+recall_metrics = []
+f1_score_metrics = []
+true_positive_metrics = []
+true_negative_metrics = []
+false_positive_metrics = []
+false_negative_metrics = []
 
 def calculate_metrics(pred, truth):
     
     np.set_printoptions(threshold=np.inf)
     
     truth = truth.cpu().numpy()
-    truth = truth.reshape(-1)
     
     max_indices = torch.argmax(pred, dim=1)
     pred = F.one_hot(max_indices, p.nb_class)
-    pred = pred.permute(0, 3, 1, 2)
-    pred = pred.cpu().numpy()
-    pred = pred.reshape(-1)
 
-    score_jaccard = jaccard_score(truth, pred)
-    score_f1 = f1_score(truth, pred)
-    score_recall = recall_score(truth, pred)
-    score_precision = precision_score(truth, pred)
-    score_accuracy = accuracy_score(truth, pred)
-        
-    return [score_jaccard, score_f1, score_recall, score_precision, score_accuracy]
+    pred = pred.permute(0, 3, 1, 2)
+    pred = pred.squeeze(dim=0)
+    pred = pred.cpu().numpy()
+    
+    accuracy = accuracy_score(truth, pred)
+    jaccard= jaccard_score(truth, pred)
+    weighted_dice = weighted_dice_score(truth, pred)
+    # matrix = confusion_matrix(truth, pred)
+
+    precision, recall, f1_score, true_positive, true_negative, false_positive, false_negative = precision_recall_f1_score(truth, pred)
+    
+    # confusion_matrix_list.append(matrix)
+    global_metrics.append([accuracy, jaccard, weighted_dice])
+    precision_metrics.append(precision)
+    recall_metrics.append(recall)
+    f1_score_metrics.append(f1_score)
+    true_positive_metrics.append(true_positive)
+    true_negative_metrics.append(true_negative)
+    false_positive_metrics.append(false_positive)
+    false_negative_metrics.append(false_negative) 
+    
+    return
 
 
 if __name__ == "__main__":
@@ -53,7 +72,7 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(p.checkpoint_path + "checkpoint.pth", map_location=device))
     model.eval()
     
-    metrics_score = [0.0, 0.0, 0.0, 0.0, 0.0]
+    metrics2_score = []
     time_taken = []
     
     for i, (x, y) in tqdm(enumerate(zip(test_x, test_y)), total=len(test_x)):
@@ -80,8 +99,7 @@ if __name__ == "__main__":
             total_time = time.time() - start
             time_taken.append(total_time)
             
-            score = calculate_metrics(pred_y, y)
-            metrics_score = list(map(add, metrics_score, score))
+            calculate_metrics(pred_y, y)
             
         pred_y = class_to_rgb(pred_y)
         pred_y = pred_y.permute(0, 2, 3, 1).detach().cpu().numpy()
@@ -95,13 +113,22 @@ if __name__ == "__main__":
 
         cat_images = np.concatenate([image, line, mask, line, pred_y], axis=1)
         cv2.imwrite(p.results_path + name + ".png", cat_images)
-        
-    jaccard = round(metrics_score[0]/len(test_x),3)
-    f1 = round(metrics_score[1]/len(test_x),3)
-    recall = round(metrics_score[2]/len(test_x),3)
-    precision = round(metrics_score[3]/len(test_x),3)
-    acc = round(metrics_score[4]/len(test_x),3)
-    print("Jaccard:", jaccard, "- F1:", f1, "- Recall:", recall, "- Precision:", precision, "- Acc: ", acc)
+
+    # matrix = np.mean(confusion_matrix_list, axis=0)
+    # plot_confusion_matrix(matrix)
+
+    accuracy = round(np.mean(global_metrics, axis=0)[0], 3)
+    jaccard = round(np.mean(global_metrics, axis=0)[1], 3)
+    weighted_dice = round(np.mean(global_metrics, axis=0)[2], 3)
+    print("Jaccard:", jaccard, "- Accuracy:", accuracy, "- Weighted Dice:", weighted_dice, "\n")
+    
+    if p.precision : print(metrics_printer(precision_metrics, "Precision"))
+    if p.recall : print(metrics_printer(recall_metrics, "Recall"))
+    if p.f1_score : print(metrics_printer(f1_score_metrics, "F1 Score"))
+    if p.true_positive : print(metrics_printer(true_positive_metrics, "True Positive"))
+    if p.true_negative : print(metrics_printer(true_negative_metrics, "True Negative"))
+    if p.false_positive : print(metrics_printer(false_positive_metrics, "False Positive"))
+    if p.false_negative : print(metrics_printer(false_negative_metrics, "False Negative"))
     
     time_taken.pop(0)
     mean_time = np.mean(time_taken)

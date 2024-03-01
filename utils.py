@@ -4,9 +4,11 @@ import random
 import numpy as np
 import parameters as p
 import torch
+import matplotlib.pyplot as plt
 
 from UNET import UNET
 from SegNet import SegNet
+from metrics import DiceLoss, MultiClassDiceLoss, JaccardLoss, WeightedDiceLoss
 
 def seeding(seed):
     random.seed(seed)
@@ -73,6 +75,26 @@ def rgb_to_class(y_true):
             y_true_class[index, i, j] = 1 # (nb_class, 512, 512)
     return y_true_class
 
+def metrics_printer(list, name):
+    result = name + " per classes :\n"
+    for i in range(p.nb_class):
+        result += str(i) + ": "
+        result += str(round(np.mean(list, axis=0)[i], 2))
+        result += " | "
+    result += "\n"
+    return result
+
+def plot_confusion_matrix(matrix):
+    
+    plt.imshow(matrix, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title('Confusion Matrix')
+    plt.colorbar()
+
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.savefig('confusion_matrix.png')  # Sauvegarde de l'image en PNG
+    plt.show()
+
 def model_selector(model_name):
     match model_name.lower():
         case "unet":
@@ -83,6 +105,6 @@ def model_selector(model_name):
 def loss_selector(loss_name):
     match loss_name.lower():
         case "diceloss":
-            return UNET()
+            return WeightedDiceLoss()
         case "jaccard":
-            return SegNet()
+            return JaccardLoss()
