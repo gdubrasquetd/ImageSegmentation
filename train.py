@@ -157,5 +157,5 @@ if __name__ == "__main__":
             plt.xlabel('Epochs')
             plt.ylabel('Loss')
             plt.legend()
-            plt.savefig('loss.png')
+            plt.savefig('loss_preview.png')
             plt.close()

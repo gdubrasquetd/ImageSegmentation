@@ -132,16 +132,16 @@ def weighted_dice_score(y_true, y_pred, smooth = 1e-7):
 
 
 def confusion_matrix(y_true, y_pred):
-    
-    y_true = torch.from_numpy(y_true)
-    y_pred = torch.from_numpy(y_pred)
-        
+
     assert y_true.shape == y_pred.shape, ("Shape error : Predicted =", y_pred.shape, "Truth =", y_true.shape)
 
     cm = np.zeros((p.nb_class, p.nb_class), dtype=int)
-    
-    for true, pred in zip(y_true, y_pred):
-        cm[true][pred] += 1
+
+    for i in range(y_true.shape[1]):
+        for j in range(y_true.shape[2]):
+            true = y_true[0, i, j]
+            pred = y_pred[0, i, j]
+            cm[true][pred] += 1
 
     return cm
 

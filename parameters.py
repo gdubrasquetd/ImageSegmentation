@@ -1,4 +1,3 @@
-import torch
 ## PARAMETERS VALUES
 
 # Original data
@@ -54,6 +53,8 @@ dropout_prob = 0
 # Class
 
 #region Eyes
+# dataset_name = "Eyes"
+
 # nb_class = 2
 
 # class_colors = {
@@ -89,7 +90,9 @@ dropout_prob = 0
 # }
 #endregion
 
-#region Satelitte
+#region Satellite
+dataset_name = "Satellite"
+
 nb_class = 6
 
 class_colors = {
@@ -112,6 +115,8 @@ class_weights = {
 #endregion
 
 #region Drone
+# dataset_name = "Drone"
+
 # nb_class = 5
 
 # class_colors = {
@@ -132,6 +137,8 @@ class_weights = {
 #endregion
 
 #region Car
+# dataset_name = "Car"
+
 # nb_class = 32
 
 # class_colors = {
@@ -207,6 +214,8 @@ class_weights = {
 #endregion
 
 #region Moto
+# dataset_name = "Moto"
+
 # nb_class = 6
 
 # class_colors = {
@@ -229,6 +238,8 @@ class_weights = {
 #endregion
 
 #region Underwater
+# dataset_name = "Underwater"
+
 # nb_class = 8
 
 # class_colors = {
@@ -265,13 +276,7 @@ true_negative = False
 false_positive = False
 false_negative = False
 
-# Graph
-
-graph_path = ""
-
-# Results
-
-results_path = "results/"
+save_report = True
 
 # Saved weights
 

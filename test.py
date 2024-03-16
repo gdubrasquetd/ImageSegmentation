@@ -1,3 +1,4 @@
+import shutil
 import os, time
 from operator import add
 import numpy as np
@@ -10,7 +11,7 @@ import torch.nn.functional as F
 from UNET import UNET
 from SegNet import SegNet
 
-from utils import create_dir, seeding, rgb_to_class, class_to_rgb, metrics_printer, plot_confusion_matrix
+from utils import create_dir, seeding, rgb_to_class, class_to_rgb, rgb_to_index, metrics_printer, plot_confusion_matrix, create_logfile, print_save
 from metrics import precision_recall_f1_score, accuracy_score, weighted_dice_score, jaccard_score, confusion_matrix
 import parameters as p
 
@@ -26,25 +27,34 @@ false_negative_metrics = []
 
 def calculate_metrics(pred, truth):
     
-    np.set_printoptions(threshold=np.inf)
+    truth_class = rgb_to_class(truth)
+    truth_index = rgb_to_index(truth)
     
-    truth = truth.cpu().numpy()
-    
-    max_indices = torch.argmax(pred, dim=1)
-    pred = F.one_hot(max_indices, p.nb_class)
+    pred_index = torch.argmax(pred, dim=1)
+    pred_class = F.one_hot(pred_index, p.nb_class)
 
-    pred = pred.permute(0, 3, 1, 2)
-    pred = pred.squeeze(dim=0)
-    pred = pred.cpu().numpy()
+    pred_class = pred_class.permute(0, 3, 1, 2)
+    pred_class = pred_class.squeeze(dim=0)
     
-    accuracy = accuracy_score(truth, pred)
-    jaccard= jaccard_score(truth, pred)
-    weighted_dice = weighted_dice_score(truth, pred)
-    # matrix = confusion_matrix(truth, pred)
+    truth_index = truth_index.cpu().numpy()
+    truth_class = truth_class.cpu().numpy()
+    pred_index = pred_index.cpu().numpy()
+    pred_class = pred_class.cpu().numpy()
+    
+    accuracy = accuracy_score(truth_class, pred_class)
+    jaccard = jaccard_score(truth_class, pred_class)
+    weighted_dice = weighted_dice_score(truth_class, pred_class)
+    matrix = confusion_matrix(truth_index, pred_index)
 
-    precision, recall, f1_score, true_positive, true_negative, false_positive, false_negative = precision_recall_f1_score(truth, pred)
+    precision,\
+    recall,\
+    f1_score,\
+    true_positive,\
+    true_negative,\
+    false_positive,\
+    false_negative = precision_recall_f1_score(truth_class, pred_class)
     
-    # confusion_matrix_list.append(matrix)
+    confusion_matrix_list.append(matrix)
     global_metrics.append([accuracy, jaccard, weighted_dice])
     precision_metrics.append(precision)
     recall_metrics.append(recall)
@@ -60,8 +70,9 @@ def calculate_metrics(pred, truth):
 if __name__ == "__main__":
     
     seeding(p.seed)
-    
-    create_dir("results")
+ 
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    results_path = create_dir("Results_" + timestamp)
     
     test_x = sorted(glob(os.path.join(".", p.test_processed_path, "images", "*")))
     test_y = sorted(glob(os.path.join(".", p.test_processed_path, "masks", "*")))
@@ -90,8 +101,6 @@ if __name__ == "__main__":
         mask = cv2.imread(y, cv2.IMREAD_COLOR)
         y = np.transpose(mask, (2, 0, 1)) # (3, 512, 512)
         y = torch.from_numpy(y)
-        y = rgb_to_class(y)
-        y = y.to(device)
 
         with torch.no_grad():
             start = time.time()
@@ -107,30 +116,40 @@ if __name__ == "__main__":
 
         line = np.ones((p.size[1], 5, 3)) * 100
         
-        cv2.putText(image, 'Image :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (100, 100, 100), 2)
-        cv2.putText(mask, 'Ground Truth :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (100, 100, 100), 2)
-        cv2.putText(pred_y , 'Prediction :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (100, 100, 100), 2)
-
+        cv2.putText(image, 'Image :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 4, cv2.LINE_AA)
+        cv2.putText(mask, 'Ground Truth :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 4, cv2.LINE_AA)
+        cv2.putText(pred_y , 'Prediction :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 4, cv2.LINE_AA)
+        cv2.putText(image, 'Image :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.putText(mask, 'Ground Truth :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.putText(pred_y , 'Prediction :', (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2, cv2.LINE_AA)
+        
         cat_images = np.concatenate([image, line, mask, line, pred_y], axis=1)
-        cv2.imwrite(p.results_path + name + ".png", cat_images)
+        cv2.imwrite(os.path.join(results_path, name + ".png"), cat_images)
 
-    # matrix = np.mean(confusion_matrix_list, axis=0)
-    # plot_confusion_matrix(matrix)
+    # Printing and saving metrics
+    
+    if os.path.exists('loss_preview.png'):
+        shutil.copy('loss_preview.png', os.path.join(results_path, 'loss_curve.png'))
+        
+    logfile = create_logfile(results_path)
+
+    matrix = np.mean(confusion_matrix_list, axis=0)
+    plot_confusion_matrix(matrix, results_path)
 
     accuracy = round(np.mean(global_metrics, axis=0)[0], 3)
     jaccard = round(np.mean(global_metrics, axis=0)[1], 3)
     weighted_dice = round(np.mean(global_metrics, axis=0)[2], 3)
-    print("Jaccard:", jaccard, "- Accuracy:", accuracy, "- Weighted Dice:", weighted_dice, "\n")
+    print_save(("Jaccard:" + str(jaccard) + " - Accuracy:" + str(accuracy) + " - Weighted Dice:" + str(weighted_dice) + "\n"), logfile)
     
-    if p.precision : print(metrics_printer(precision_metrics, "Precision"))
-    if p.recall : print(metrics_printer(recall_metrics, "Recall"))
-    if p.f1_score : print(metrics_printer(f1_score_metrics, "F1 Score"))
-    if p.true_positive : print(metrics_printer(true_positive_metrics, "True Positive"))
-    if p.true_negative : print(metrics_printer(true_negative_metrics, "True Negative"))
-    if p.false_positive : print(metrics_printer(false_positive_metrics, "False Positive"))
-    if p.false_negative : print(metrics_printer(false_negative_metrics, "False Negative"))
+    if p.precision : print_save(metrics_printer(precision_metrics, "Precision"), logfile)
+    if p.recall : print_save(metrics_printer(recall_metrics, "Recall"), logfile)
+    if p.f1_score : print_save(metrics_printer(f1_score_metrics, "F1 Score"), logfile)
+    if p.true_positive : print_save(metrics_printer(true_positive_metrics, "True Positive"), logfile)
+    if p.true_negative : print_save(metrics_printer(true_negative_metrics, "True Negative"), logfile)
+    if p.false_positive : print_save(metrics_printer(false_positive_metrics, "False Positive"), logfile)
+    if p.false_negative : print_save(metrics_printer(false_negative_metrics, "False Negative"), logfile)
     
     time_taken.pop(0)
     mean_time = np.mean(time_taken)
-    print("Mean Time: ",round( mean_time, 5))
-    print("Mean FPS: ", round(1 / mean_time))
+    print_save("Mean Time: " + str(round( mean_time, 5)), logfile)
+    print_save("Mean FPS: " + str(round(1 / mean_time)), logfile)
