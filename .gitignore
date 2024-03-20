@@ -16,3 +16,6 @@ venv/
 .vscode/
 
 *.zip
+
+Results_*/
+

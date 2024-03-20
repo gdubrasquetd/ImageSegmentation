@@ -15,7 +15,6 @@ class conv_block(nn.Module):
         self.conv2 = nn.Conv2d(out_c, out_c, kernel_size=3, padding=1)
         self.bn2 = nn.BatchNorm2d(out_c)
         self.dropout2 = nn.Dropout2d(p.dropout_prob)
-
         
         self.relu = nn.ReLU()
         
@@ -117,12 +116,18 @@ class UNET(nn.Module):
         b = self.b(p4)
         
         #Decoder
+        # print(b.size())
         d1 = self.d1(b, s4)
+        # print(d1.size())
         d2 = self.d2(d1, s3)
+        # print(d2.size())
         d3 = self.d3(d2, s2)
+        # print(d3.size())
         d4 = self.d4(d3, s1)
+        # print(d4.size())
         
         outputs = self.outputs(d4)
+        # print(d1.size())
         outputs = F.softmax(outputs, dim=1)
 
         return outputs

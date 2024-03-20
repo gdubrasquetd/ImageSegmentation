@@ -21,24 +21,24 @@ Global_Flip = False
 
 Horizontal_Flip = False
 
-Vertical_Flip = False
+Vertical_Flip = True
 
 Rotation = False
 Rotation_Angle = [20, 50]   	# Random value between 10 and 45 or -10 and -45
 
-Brightness = False
-Bright_Range = [10, 40]     	# Random value between 30 and 80 or -30 and -80
+Brightness = True
+Bright_Range = [25, 50]     	# Random value between 30 and 80 or -30 and -80
 
-Blur = False
+Blur = True
 
-Sharpening = False
+Sharpening = True
 
 Zoom = False
 Zoom_Range = [0.5, 0.95]     	# Random value between 0 and 1 
 
 # Hyperparamters
 
-model = "UNET"
+model = "segnet"
 
 loss = "diceloss"
 
@@ -69,39 +69,17 @@ dropout_prob = 0
 #endregion
 
 #region Face
-# nb_class = 6
-
-# class_colors = {
-#     0 : (255, 0, 0),      #Background
-#     1 : (127, 0, 0),      #Hair
-#     2 : (255, 255, 0),    #Skin
-#     3 : (0, 0, 255),      #Eyes
-#     4 : (0, 255, 255),    #Nose  
-#     5 : (0, 255, 0)       #Mouth
-# }
-
-# class_weights = {
-#     0 : 1,
-#     1 : 1,
-#     2 : 1,
-#     3 : 1,
-#     4 : 1,
-#     5 : 1
-# }
-#endregion
-
-#region Satellite
-dataset_name = "Satellite"
+dataset_name = "Face"
 
 nb_class = 6
 
 class_colors = {
-    0 : (155, 155, 155),  #Unlabeled
-    1 : (226, 169, 41),   #Water   
-    2 : (254, 221, 58),   #Vegetation
-    3 : (132, 41, 246),   #Land
-    4 : (110, 193, 228),  #Road
-    5 : (60, 16, 152)     #Building
+    0 : (255, 0, 0),      #Background
+    1 : (127, 0, 0),      #Hair
+    2 : (255, 255, 0),    #Skin
+    3 : (0, 0, 255),      #Eyes
+    4 : (0, 255, 255),    #Nose  
+    5 : (0, 255, 0)       #Mouth
 }
 
 class_weights = {
@@ -112,6 +90,30 @@ class_weights = {
     4 : 1,
     5 : 1
 }
+#endregion
+
+#region Satellite
+# dataset_name = "Satellite"
+
+# nb_class = 6
+
+# class_colors = {
+#     0 : (155, 155, 155),  #Unlabeled
+#     1 : (226, 169, 41),   #Water   
+#     2 : (254, 221, 58),   #Vegetation
+#     3 : (132, 41, 246),   #Land
+#     4 : (110, 193, 228),  #Road
+#     5 : (60, 16, 152)     #Building
+# }
+
+# class_weights = {
+#     0 : 1,
+#     1 : 1,
+#     2 : 1,
+#     3 : 1,
+#     4 : 1,
+#     5 : 1
+# }
 #endregion
 
 #region Drone
